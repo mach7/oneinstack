@@ -1,0 +1,9 @@
+prefix=/root/oneinstack/src/nginx-1.20.2/../openssl-1.1.1k/.openssl
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: OpenSSL
+Description: Secure Sockets Layer and cryptography libraries and tools
+Version: 1.1.1k
+Requires: libssl libcrypto
