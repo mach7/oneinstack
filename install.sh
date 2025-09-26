@@ -49,8 +49,8 @@ Show_Help() {
   --apache                    Install Apache
   --apache_mode_option [1-2]  Apache2.4 mode, 1(default): php-fpm, 2: mod_php
   --apache_mpm_option [1-3]   Apache2.4 MPM, 1(default): event, 2: prefork, 3: worker
-  --php_option [1-11]         Install PHP version
-  --mphp_ver [53~81]          Install another PHP version (PATH: ${php_install_dir}\${mphp_ver})
+  --php_option [1-14]         Install PHP version
+  --mphp_ver [53~84]          Install another PHP version (PATH: ${php_install_dir}\${mphp_ver})
   --mphp_addons               Only install another PHP addons
   --phpcache_option [1-4]     Install PHP opcode cache, default: 1 opcache
   --php_extensions [ext name] Install PHP extensions, include zendguardloader,ioncube,
@@ -106,12 +106,12 @@ while :; do
       ;;
     --php_option)
       php_option=$2; shift 2
-      [[ ! ${php_option} =~ ^[1-9]$|^1[0-1]$ ]] && { echo "${CWARNING}php_option input error! Please only input number 1~11${CEND}"; exit 1; }
+      [[ ! ${php_option} =~ ^[1-9]$|^1[0-4]$ ]] && { echo "${CWARNING}php_option input error! Please only input number 1~14${CEND}"; exit 1; }
       [ -e "${php_install_dir}/bin/phpize" ] && { echo "${CWARNING}PHP already installed! ${CEND}"; unset php_option; }
       ;;
     --mphp_ver)
       mphp_ver=$2; mphp_flag=y; shift 2
-      [[ ! "${mphp_ver}" =~ ^5[3-6]$|^7[0-4]$|^8[0-1]$ ]] && { echo "${CWARNING}mphp_ver input error! Please only input number 53~81${CEND}"; exit 1; }
+      [[ ! "${mphp_ver}" =~ ^5[3-6]$|^7[0-4]$|^8[0-4]$ ]] && { echo "${CWARNING}mphp_ver input error! Please only input number 53~84${CEND}"; exit 1; }
       ;;
     --mphp_addons)
       mphp_addons_flag=y; shift 1
@@ -479,10 +479,13 @@ if [ ${ARG_NUM} == 0 ]; then
           echo -e "\t${CMSG} 9${CEND}. Install php-7.4"
           echo -e "\t${CMSG}10${CEND}. Install php-8.0"
           echo -e "\t${CMSG}11${CEND}. Install php-8.1"
+          echo -e "\t${CMSG}12${CEND}. Install php-8.2"
+          echo -e "\t${CMSG}13${CEND}. Install php-8.3"
+          echo -e "\t${CMSG}14${CEND}. Install php-8.4"
           read -e -p "Please input a number:(Default 7 press Enter) " php_option
           php_option=${php_option:-7}
-          if [[ ! ${php_option} =~ ^[1-9]$|^1[0-1]$ ]]; then
-            echo "${CWARNING}input error! Please only input number 1~11${CEND}"
+          if [[ ! ${php_option} =~ ^[1-9]$|^1[0-4]$ ]]; then
+            echo "${CWARNING}input error! Please only input number 1~14${CEND}"
           else
             break
           fi
@@ -908,6 +911,18 @@ case "${php_option}" in
   11)
     . include/php-8.1.sh
     Install_PHP81 2>&1 | tee -a ${oneinstack_dir}/install.log
+    ;;
+  12)
+    . include/php-8.2.sh
+    Install_PHP82 2>&1 | tee -a ${oneinstack_dir}/install.log
+    ;;
+  13)
+    . include/php-8.3.sh
+    Install_PHP83 2>&1 | tee -a ${oneinstack_dir}/install.log
+    ;;
+  14)
+    . include/php-8.4.sh
+    Install_PHP84 2>&1 | tee -a ${oneinstack_dir}/install.log
     ;;
 esac
 
