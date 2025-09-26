@@ -9,32 +9,15 @@
 #       https://github.com/oneinstack/oneinstack
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
-clear
+[ -t 1 ] && [ -n "$TERM" ] && clear
 printf "
 #######################################################################
 #       OneinStack for CentOS/RedHat 7+ Debian 8+ and Ubuntu 16+      #
 #       For more information please visit https://oneinstack.com      #
 #######################################################################
 "
-# Check if user is root
-[ $(id -u) != "0" ] && { echo "${CFAILURE}Error: You must be root to run this script${CEND}"; exit 1; }
-
-oneinstack_dir=$(dirname "`readlink -f $0`")
-pushd ${oneinstack_dir} > /dev/null
-. ./versions.txt
-. ./options.conf
-. ./include/color.sh
-. ./include/check_os.sh
-. ./include/check_dir.sh
-. ./include/download.sh
-. ./include/get_char.sh
-
-dbrootpwd=`< /dev/urandom tr -dc A-Za-z0-9 | head -c8`
-dbpostgrespwd=`< /dev/urandom tr -dc A-Za-z0-9 | head -c8`
-dbmongopwd=`< /dev/urandom tr -dc A-Za-z0-9 | head -c8`
-xcachepwd=`< /dev/urandom tr -dc A-Za-z0-9 | head -c8`
-dbinstallmethod=1
-
+# Version and help functions are defined early so we can handle them
+# before enforcing root. This lets CI print the banner/version without sudo.
 version() {
   echo "version: 2.4"
   echo "updated date: 2021-10-01"
@@ -72,6 +55,37 @@ Show_Help() {
   --reboot                    Restart the server after installation
   "
 }
+
+# Handle --help/--version before enforcing root, so banner/version checks
+# in CI do not fail when not running as root.
+for arg in "$@"; do
+  case "$arg" in
+    -h|--help)
+      Show_Help; exit 0 ;;
+    -v|-V|--version)
+      version; exit 0 ;;
+  esac
+done
+
+# Check if user is root (after handling help/version)
+[ $(id -u) != "0" ] && { echo "Error: You must be root to run this script"; exit 1; }
+
+oneinstack_dir=$(dirname "`readlink -f $0`")
+pushd ${oneinstack_dir} > /dev/null
+. ./versions.txt
+. ./options.conf
+. ./include/color.sh
+. ./include/check_os.sh
+. ./include/check_dir.sh
+. ./include/download.sh
+. ./include/get_char.sh
+
+dbrootpwd=`< /dev/urandom tr -dc A-Za-z0-9 | head -c8`
+dbpostgrespwd=`< /dev/urandom tr -dc A-Za-z0-9 | head -c8`
+dbmongopwd=`< /dev/urandom tr -dc A-Za-z0-9 | head -c8`
+xcachepwd=`< /dev/urandom tr -dc A-Za-z0-9 | head -c8`
+dbinstallmethod=1
+
 ARG_NUM=$#
 TEMP=`getopt -o hvV --long help,version,nginx_option:,apache,apache_mode_option:,apache_mpm_option:,php_option:,mphp_ver:,mphp_addons,phpcache_option:,php_extensions:,node,tomcat_option:,jdk_option:,db_option:,dbrootpwd:,dbinstallmethod:,pureftpd,redis,memcached,phpmyadmin,python,ssh_port:,iptables,reboot -- "$@" 2>/dev/null`
 [ $? != 0 ] && echo "${CWARNING}ERROR: unknown argument! ${CEND}" && Show_Help && exit 1
