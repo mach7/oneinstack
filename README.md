@@ -71,10 +71,21 @@ cd oneinstack
 
 Or download a tarball from GitHub:
 ```bash
-curl -L https://github.com/mach7/oneinstack/archive/refs/heads/main.tar.gz -o oneinstack-main.tar.gz
+curl -L https://codeload.github.com/mach7/oneinstack/tar.gz/refs/heads/main -o oneinstack-main.tar.gz
 tar xzf oneinstack-main.tar.gz
 cd oneinstack-main
 ```
+
+If tarball fails in your environment, use ZIP fallback:
+```bash
+curl -L https://codeload.github.com/mach7/oneinstack/zip/refs/heads/main -o oneinstack-main.zip
+unzip oneinstack-main.zip
+cd oneinstack-main
+```
+
+Troubleshooting downloads:
+- Verify redirects followed: `curl -I -L https://github.com/mach7/oneinstack/archive/refs/heads/main.tar.gz`
+- Confirm archive type: `file oneinstack-main.tar.gz` should report gzip; if not, re-download with the codeload URLs above.
 
 If you disconnect during installation, you can execute the command `screen -r oneinstack` to reconnect to the install window
 ```bash
