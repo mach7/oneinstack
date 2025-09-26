@@ -15,19 +15,43 @@ Install_Tengine() {
   id -u ${run_user} >/dev/null 2>&1
   [ $? -ne 0 ] && useradd -g ${run_group} -M -s /sbin/nologin ${run_user}
 
-  tar xzf pcre-${pcre_ver}.tar.gz
+  # Prefer PCRE2 when available; fallback to PCRE
+  if [ -n "${pcre2_ver}" ] && [ -s "pcre2-${pcre2_ver}.tar.gz" ]; then
+    tar xzf pcre2-${pcre2_ver}.tar.gz
+    PCRE_SRC_DIR=../pcre2-${pcre2_ver}
+  else
+    tar xzf pcre-${pcre_ver}.tar.gz
+    PCRE_SRC_DIR=../pcre-${pcre_ver}
+  fi
   tar xzf tengine-${tengine_ver}.tar.gz
-  tar xzf openssl-${openssl11_ver}.tar.gz
+  # Prefer OpenSSL 3.x when available; fallback to 1.1.1
+  if [ -n "${openssl3_ver}" ] && [ -s "openssl-${openssl3_ver}.tar.gz" ]; then
+    tar xzf openssl-${openssl3_ver}.tar.gz
+    OPENSSL_SRC_DIR=../openssl-${openssl3_ver}
+  else
+    tar xzf openssl-${openssl11_ver}.tar.gz
+    OPENSSL_SRC_DIR=../openssl-${openssl11_ver}
+  fi
   pushd tengine-${tengine_ver} > /dev/null
   # Modify Tengine version
   #sed -i 's@TENGINE "/" TENGINE_VERSION@"Tengine/unknown"@' src/core/nginx.h
 
   [ ! -d "${tengine_install_dir}" ] && mkdir -p ${tengine_install_dir}
-  ./configure --prefix=${tengine_install_dir} --user=${run_user} --group=${run_group} --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_realip_module --with-http_flv_module --with-http_mp4_module --with-openssl=../openssl-${openssl11_ver} --with-pcre=../pcre-${pcre_ver} --with-pcre-jit --with-jemalloc ${nginx_modules_options}
+  ./configure --prefix=${tengine_install_dir} --user=${run_user} --group=${run_group} --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_realip_module --with-http_flv_module --with-http_mp4_module --with-openssl=${OPENSSL_SRC_DIR} --with-pcre=${PCRE_SRC_DIR} --with-pcre-jit --with-jemalloc ${nginx_modules_options}
   make && make install
   if [ -e "${tengine_install_dir}/conf/nginx.conf" ]; then
     popd > /dev/null
-    rm -rf pcre-${pcre_ver} openssl-${openssl11_ver} tengine-${tengine_ver}
+    if [ -n "${pcre2_ver}" ] && [ -d "pcre2-${pcre2_ver}" ]; then
+      rm -rf pcre2-${pcre2_ver}
+    else
+      rm -rf pcre-${pcre_ver}
+    fi
+    if [ -n "${openssl3_ver}" ] && [ -d "openssl-${openssl3_ver}" ]; then
+      rm -rf openssl-${openssl3_ver}
+    else
+      rm -rf openssl-${openssl11_ver}
+    fi
+    rm -rf tengine-${tengine_ver}
     echo "${CSUCCESS}Tengine installed successfully! ${CEND}"
   else
     rm -rf ${tengine_install_dir}

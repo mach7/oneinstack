@@ -55,7 +55,7 @@ Upgrade_Nginx() {
     ${nginx_install_dir}/sbin/nginx -V &> $$
     nginx_configure_args_tmp=`cat $$ | grep 'configure arguments:' | awk -F: '{print $2}'`
     rm -rf $$
-    nginx_configure_args=`echo ${nginx_configure_args_tmp} | sed "s@lua-nginx-module-\w.\w\+.\w\+ @lua-nginx-module-${lua_nginx_module_ver} @" | sed "s@lua-nginx-module @lua-nginx-module-${lua_nginx_module_ver} @" | sed "s@--with-openssl=../openssl-\w.\w.\w\+ @--with-openssl=../openssl-${openssl11_ver} @" | sed "s@--with-pcre=../pcre-\w.\w\+ @--with-pcre=../pcre-${pcre_ver} @"`
+    nginx_configure_args=`echo ${nginx_configure_args_tmp} | sed "s@lua-nginx-module-\w.\w\+.\w\+ @lua-nginx-module-${lua_nginx_module_ver} @" | sed "s@lua-nginx-module @lua-nginx-module-${lua_nginx_module_ver} @" | sed "s@--with-openssl=../openssl-\w.\w.\w\+ @--with-openssl=../openssl-${openssl3_ver:-${openssl11_ver}} @" | sed "s@--with-pcre=../pcre-\w.\w\+ @--with-pcre=../pcre-${pcre_ver} @" | sed "s@--with-pcre=../pcre2-\w.\w\+ @--with-pcre=../pcre2-${pcre2_ver} @"`
     export LUAJIT_LIB=/usr/local/lib
     export LUAJIT_INC=/usr/local/include/luajit-2.1
     ./configure ${nginx_configure_args}
@@ -117,7 +117,7 @@ Upgrade_Tengine() {
     ${tengine_install_dir}/sbin/nginx -V &> $$
     tengine_configure_args_tmp=`cat $$ | grep 'configure arguments:' | awk -F: '{print $2}'`
     rm -rf $$
-    tengine_configure_args=`echo ${tengine_configure_args_tmp} | sed "s@--with-openssl=../openssl-\w.\w.\w\+ @--with-openssl=../openssl-${openssl11_ver} @" | sed "s@--with-pcre=../pcre-\w.\w\+ @--with-pcre=../pcre-${pcre_ver} @"`
+    tengine_configure_args=`echo ${tengine_configure_args_tmp} | sed "s@--with-openssl=../openssl-\w.\w.\w\+ @--with-openssl=../openssl-${openssl3_ver:-${openssl11_ver}} @" | sed "s@--with-pcre=../pcre-\w.\w\+ @--with-pcre=../pcre-${pcre_ver} @" | sed "s@--with-pcre=../pcre2-\w.\w\+ @--with-pcre=../pcre2-${pcre2_ver} @"`
     export LUAJIT_LIB=/usr/local/lib
     export LUAJIT_INC=/usr/local/include/luajit-2.1
     ./configure ${tengine_configure_args}
@@ -181,7 +181,7 @@ Upgrade_OpenResty() {
     make clean
     sed -i 's@CFLAGS="$CFLAGS -g"@#CFLAGS="$CFLAGS -g"@' bundle/nginx-${NEW_openresy_ver%.*}/auto/cc/gcc # close debug
     ${openresty_install_dir}/nginx/sbin/nginx -V &> $$
-    ./configure --prefix=${openresty_install_dir} --user=${run_user} --group=${run_user} --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_realip_module --with-http_flv_module --with-http_mp4_module --with-openssl=../openssl-${openssl11_ver} --with-pcre=../pcre-${pcre_ver} --with-pcre-jit --with-ld-opt='-ljemalloc -Wl,-u,pcre_version' ${nginx_modules_options}
+    ./configure --prefix=${openresty_install_dir} --user=${run_user} --group=${run_user} --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_realip_module --with-http_flv_module --with-http_mp4_module --with-openssl=../openssl-${openssl3_ver:-${openssl11_ver}} --with-pcre=../pcre-${pcre_ver} --with-pcre-jit --with-ld-opt='-ljemalloc -Wl,-u,pcre_version' ${nginx_modules_options}
     make -j ${THREAD}
     if [ -f "build/nginx-${NEW_openresy_ver%.*}/objs/nginx" ]; then
       /bin/mv ${openresty_install_dir}/nginx/sbin/nginx{,`date +%m%d`}

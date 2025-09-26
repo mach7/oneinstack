@@ -49,8 +49,8 @@ Show_Help() {
   --apache                    Install Apache
   --apache_mode_option [1-2]  Apache2.4 mode, 1(default): php-fpm, 2: mod_php
   --apache_mpm_option [1-3]   Apache2.4 MPM, 1(default): event, 2: prefork, 3: worker
-  --php_option [1-11]         Install PHP version
-  --mphp_ver [53~81]          Install another PHP version (PATH: ${php_install_dir}\${mphp_ver})
+  --php_option [13-14]        Install PHP version (13: 8.3, 14: 8.4)
+  --mphp_ver [83~84]          Install another PHP version (PATH: ${php_install_dir}\${mphp_ver})
   --mphp_addons               Only install another PHP addons
   --phpcache_option [1-4]     Install PHP opcode cache, default: 1 opcache
   --php_extensions [ext name] Install PHP extensions, include zendguardloader,ioncube,
@@ -59,7 +59,7 @@ Show_Help() {
   --node                      Install Nodejs
   --tomcat_option [1-4]       Install Tomcat version
   --jdk_option [1-4]          Install JDK version
-  --db_option [1-14]          Install DB version
+  --db_option [1-2]           Install DB version (1: MySQL 8.4, 2: PostgreSQL)
   --dbinstallmethod [1-2]     DB install method, default: 1 binary install
   --dbrootpwd [password]      DB super password
   --pureftpd                  Install Pure-Ftpd
@@ -106,12 +106,12 @@ while :; do
       ;;
     --php_option)
       php_option=$2; shift 2
-      [[ ! ${php_option} =~ ^[1-9]$|^1[0-1]$ ]] && { echo "${CWARNING}php_option input error! Please only input number 1~11${CEND}"; exit 1; }
+      [[ ! ${php_option} =~ ^[13-14]$ ]] && { echo "${CWARNING}php_option input error! Please only input number 13~14${CEND}"; exit 1; }
       [ -e "${php_install_dir}/bin/phpize" ] && { echo "${CWARNING}PHP already installed! ${CEND}"; unset php_option; }
       ;;
     --mphp_ver)
       mphp_ver=$2; mphp_flag=y; shift 2
-      [[ ! "${mphp_ver}" =~ ^5[3-6]$|^7[0-4]$|^8[0-1]$ ]] && { echo "${CWARNING}mphp_ver input error! Please only input number 53~81${CEND}"; exit 1; }
+      [[ ! "${mphp_ver}" =~ ^8[3-4]$ ]] && { echo "${CWARNING}mphp_ver input error! Please only input number 83~84${CEND}"; exit 1; }
       ;;
     --mphp_addons)
       mphp_addons_flag=y; shift 1
@@ -155,14 +155,12 @@ while :; do
       ;;
     --db_option)
       db_option=$2; shift 2
-      if [[ "${db_option}" =~ ^[1-9]$|^1[0-2]$ ]]; then
+      if [ "${db_option}" == '1' ]; then
         [ -d "${db_install_dir}/support-files" ] && { echo "${CWARNING}MySQL already installed! ${CEND}"; unset db_option; }
-      elif [ "${db_option}" == '13' ]; then
+      elif [ "${db_option}" == '2' ]; then
         [ -e "${pgsql_install_dir}/bin/psql" ] && { echo "${CWARNING}PostgreSQL already installed! ${CEND}"; unset db_option; }
-      elif [ "${db_option}" == '14' ]; then
-        [ -e "${mongo_install_dir}/bin/mongo" ] && { echo "${CWARNING}MongoDB already installed! ${CEND}"; unset db_option; }
       else
-        echo "${CWARNING}db_option input error! Please only input number 1~14${CEND}"
+        echo "${CWARNING}db_option input error! Please only input number 1~2${CEND}"
         exit 1
       fi
       ;;
@@ -383,48 +381,28 @@ if [ ${ARG_NUM} == 0 ]; then
       if [ "${db_flag}" == 'y' ]; then
         while :; do echo
           echo 'Please select a version of the Database:'
-          echo -e "\t${CMSG} 1${CEND}. Install MySQL-8.0"
-          echo -e "\t${CMSG} 2${CEND}. Install MySQL-5.7"
-          echo -e "\t${CMSG} 3${CEND}. Install MySQL-5.6"
-          echo -e "\t${CMSG} 4${CEND}. Install MySQL-5.5"
-          echo -e "\t${CMSG} 5${CEND}. Install MariaDB-10.6"
-          echo -e "\t${CMSG} 6${CEND}. Install MariaDB-10.5"
-          echo -e "\t${CMSG} 7${CEND}. Install MariaDB-10.4"
-          echo -e "\t${CMSG} 8${CEND}. Install MariaDB-5.5"
-          echo -e "\t${CMSG} 9${CEND}. Install Percona-8.0"
-          echo -e "\t${CMSG}10${CEND}. Install Percona-5.7"
-          echo -e "\t${CMSG}11${CEND}. Install Percona-5.6"
-          echo -e "\t${CMSG}12${CEND}. Install Percona-5.5"
-          echo -e "\t${CMSG}13${CEND}. Install PostgreSQL"
-          echo -e "\t${CMSG}14${CEND}. Install MongoDB"
-          read -e -p "Please input a number:(Default 2 press Enter) " db_option
-          db_option=${db_option:-2}
-          [[ "${db_option}" =~ ^9$|^14$ ]] && [ "${OS_BIT}" == '32' ] && { echo "${CWARNING}By not supporting 32-bit! ${CEND}"; continue; }
-          if [[ "${db_option}" =~ ^[1-9]$|^1[0-4]$ ]]; then
-            if [ "${db_option}" == '13' ]; then
+          echo -e "\t${CMSG} 1${CEND}. Install MySQL-8.4"
+          echo -e "\t${CMSG} 2${CEND}. Install PostgreSQL"
+          read -e -p "Please input a number:(Default 1 press Enter) " db_option
+          db_option=${db_option:-1}
+          if [[ "${db_option}" =~ ^[1-2]$ ]]; then
+            if [ "${db_option}" == '2' ]; then
               [ -e "${pgsql_install_dir}/bin/psql" ] && { echo "${CWARNING}PostgreSQL already installed! ${CEND}"; unset db_option; break; }
-            elif [ "${db_option}" == '14' ]; then
-              [ -e "${mongo_install_dir}/bin/mongo" ] && { echo "${CWARNING}MongoDB already installed! ${CEND}"; unset db_option; break; }
             else
               [ -d "${db_install_dir}/support-files" ] && { echo "${CWARNING}MySQL already installed! ${CEND}"; unset db_option; break; }
             fi
             while :; do
-              if [ "${db_option}" == '13' ]; then
+              if [ "${db_option}" == '2' ]; then
                 read -e -p "Please input the postgres password of PostgreSQL(default: ${dbpostgrespwd}): " dbpwd
                 dbpwd=${dbpwd:-${dbpostgrespwd}}
-              elif [ "${db_option}" == '14' ]; then
-                read -e -p "Please input the root password of MongoDB(default: ${dbmongopwd}): " dbpwd
-                dbpwd=${dbpwd:-${dbmongopwd}}
               else
                 read -e -p "Please input the root password of MySQL(default: ${dbrootpwd}): " dbpwd
                 dbpwd=${dbpwd:-${dbrootpwd}}
               fi
               [ -n "`echo ${dbpwd} | grep '[+|&]'`" ] && { echo "${CWARNING}input error,not contain a plus sign (+) and & ${CEND}"; continue; }
               if (( ${#dbpwd} >= 5 )); then
-                if [ "${db_option}" == '13' ]; then
+                if [ "${db_option}" == '2' ]; then
                   dbpostgrespwd=${dbpwd}
-                elif [ "${db_option}" == '14' ]; then
-                  dbmongopwd=${dbpwd}
                 else
                   dbrootpwd=${dbpwd}
                 fi
@@ -434,7 +412,7 @@ if [ ${ARG_NUM} == 0 ]; then
               fi
             done
             # choose install methods
-            if [[ "${db_option}" =~ ^[1-9]$|^1[0-2]$ ]]; then
+            if [[ "${db_option}" =~ ^[1-2]$ ]]; then
               while :; do echo
                 echo "Please choose installation of the database:"
                 echo -e "\t${CMSG}1${CEND}. Install database from binary package."
@@ -450,7 +428,7 @@ if [ ${ARG_NUM} == 0 ]; then
             fi
             break
           else
-            echo "${CWARNING}input error! Please only input number 1~14${CEND}"
+            echo "${CWARNING}input error! Please only input number 1~2${CEND}"
           fi
         done
       fi
@@ -468,21 +446,12 @@ if [ ${ARG_NUM} == 0 ]; then
         [ -e "${php_install_dir}/bin/phpize" ] && { echo "${CWARNING}PHP already installed! ${CEND}"; unset php_option; break; }
         while :; do echo
           echo 'Please select a version of the PHP:'
-          echo -e "\t${CMSG} 1${CEND}. Install php-5.3"
-          echo -e "\t${CMSG} 2${CEND}. Install php-5.4"
-          echo -e "\t${CMSG} 3${CEND}. Install php-5.5"
-          echo -e "\t${CMSG} 4${CEND}. Install php-5.6"
-          echo -e "\t${CMSG} 5${CEND}. Install php-7.0"
-          echo -e "\t${CMSG} 6${CEND}. Install php-7.1"
-          echo -e "\t${CMSG} 7${CEND}. Install php-7.2"
-          echo -e "\t${CMSG} 8${CEND}. Install php-7.3"
-          echo -e "\t${CMSG} 9${CEND}. Install php-7.4"
-          echo -e "\t${CMSG}10${CEND}. Install php-8.0"
-          echo -e "\t${CMSG}11${CEND}. Install php-8.1"
-          read -e -p "Please input a number:(Default 7 press Enter) " php_option
-          php_option=${php_option:-7}
-          if [[ ! ${php_option} =~ ^[1-9]$|^1[0-1]$ ]]; then
-            echo "${CWARNING}input error! Please only input number 1~11${CEND}"
+          echo -e "\t${CMSG}13${CEND}. Install php-8.3"
+          echo -e "\t${CMSG}14${CEND}. Install php-8.4"
+          read -e -p "Please input a number:(Default 13 press Enter) " php_option
+          php_option=${php_option:-13}
+          if [[ ! ${php_option} =~ ^1[3-4]$ ]]; then
+            echo "${CWARNING}input error! Please only input number 13~14${CEND}"
           else
             break
           fi
@@ -499,7 +468,7 @@ if [ ${ARG_NUM} == 0 ]; then
   fi
 
   # PHP opcode cache and extensions
-  if [[ ${php_option} =~ ^[1-9]$|^1[0-1]$ ]] || [ -e "${php_install_dir}/bin/phpize" ]; then
+  if [[ ${php_option} =~ ^1[3-4]$ ]] || [ -e "${php_install_dir}/bin/phpize" ]; then
     while :; do echo
       read -e -p "Do you want to install opcode cache of the PHP? [y/n]: " phpcache_flag
       if [[ ! ${phpcache_flag} =~ ^[y,n]$ ]]; then
@@ -568,7 +537,7 @@ if [ ${ARG_NUM} == 0 ]; then
               fi
             done
           fi
-          if [[ ${php_option} =~ ^[5-9]$|^1[0-1]$ ]] || [[ "${PHP_main_ver}" =~ ^7.[0-4]$|^8.[0-1]$ ]]; then
+          if [[ ${php_option} =~ ^1[3-4]$ ]] || [[ "${PHP_main_ver}" =~ ^8.[3-4]$ ]]; then
             while :; do
               echo 'Please select a opcode cache of the PHP:'
               echo -e "\t${CMSG}1${CEND}. Install Zend OPcache"
@@ -672,7 +641,7 @@ if [ ${ARG_NUM} == 0 ]; then
   done
 
   # check phpMyAdmin
-  if [[ ${php_option} =~ ^[1-9]$|^1[0-1]$ ]] || [ -e "${php_install_dir}/bin/phpize" ]; then
+  if [[ ${php_option} =~ ^1[3-4]$ ]] || [ -e "${php_install_dir}/bin/phpize" ]; then
     while :; do echo
       read -e -p "Do you want to install phpMyAdmin? [y/n]: " phpmyadmin_flag
       if [[ ! ${phpmyadmin_flag} =~ ^[y,n]$ ]]; then
@@ -765,13 +734,13 @@ fi
 startTime=`date +%s`
 
 # Jemalloc
-if [[ ${nginx_option} =~ ^[1-3]$ ]] || [[ "${db_option}" =~ ^[1-9]$|^1[0-2]$ ]]; then
+if [[ ${nginx_option} =~ ^[1-3]$ ]] || [[ "${db_option}" =~ ^[1-2]$ ]]; then
   . include/jemalloc.sh
   Install_Jemalloc | tee -a ${oneinstack_dir}/install.log
 fi
 
 # openSSL
-if [[ ${tomcat_option} =~ ^[1-4]$ ]] || [ "${apache_flag}" == 'y' ] || [[ ${php_option} =~ ^[1-9]$|^1[0-1]$ ]] || [[ "${mphp_ver}" =~ ^5[3-6]$|^7[0-4]$|^8[0-1]$ ]]; then
+if [[ ${tomcat_option} =~ ^[1-4]$ ]] || [ "${apache_flag}" == 'y' ] || [[ ${php_option} =~ ^1[3-4]$ ]] || [[ "${mphp_ver}" =~ ^8[3-4]$ ]]; then
   . include/openssl.sh
   Install_openSSL | tee -a ${oneinstack_dir}/install.log
 fi
@@ -779,63 +748,12 @@ fi
 # Database
 case "${db_option}" in
   1)
-    [ "${LikeOS}" == 'RHEL' ] && [ ${RHEL_ver} -le 6 >/dev/null 2>&1 ] && dbinstallmethod=1 && checkDownload
     . include/mysql-8.0.sh
     Install_MySQL80 2>&1 | tee -a ${oneinstack_dir}/install.log
     ;;
   2)
-    . include/mysql-5.7.sh
-    Install_MySQL57 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  3)
-    . include/mysql-5.6.sh
-    Install_MySQL56 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  4)
-    . include/mysql-5.5.sh
-    Install_MySQL55 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  5)
-    . include/mariadb-10.6.sh
-    Install_MariaDB106 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  6)
-    . include/mariadb-10.5.sh
-    Install_MariaDB105 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  7)
-    . include/mariadb-10.4.sh
-    Install_MariaDB104 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  8)
-    . include/mariadb-5.5.sh
-    Install_MariaDB55 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  9)
-    [ "${LikeOS}" == 'RHEL' ] && [ ${RHEL_ver} -le 6 >/dev/null 2>&1 ] && dbinstallmethod=1 && checkDownload
-    [ "${LikeOS}" == 'RHEL' ] && [ "${RHEL_ver}" == '8' ] && dbinstallmethod=2 && checkDownload
-    . include/percona-8.0.sh
-    Install_Percona80 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  10)
-    . include/percona-5.7.sh
-    Install_Percona57 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  11)
-    . include/percona-5.6.sh
-    Install_Percona56 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  12)
-    . include/percona-5.5.sh
-    Install_Percona55 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  13)
     . include/postgresql.sh
     Install_PostgreSQL 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  14)
-    . include/mongodb.sh
-    Install_MongoDB 2>&1 | tee -a ${oneinstack_dir}/install.log
     ;;
 esac
 
@@ -865,49 +783,13 @@ fi
 
 # PHP
 case "${php_option}" in
-  1)
-    . include/php-5.3.sh
-    Install_PHP53 2>&1 | tee -a ${oneinstack_dir}/install.log
+  13)
+    . include/php-8.3.sh
+    Install_PHP83 2>&1 | tee -a ${oneinstack_dir}/install.log
     ;;
-  2)
-    . include/php-5.4.sh
-    Install_PHP54 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  3)
-    . include/php-5.5.sh
-    Install_PHP55 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  4)
-    . include/php-5.6.sh
-    Install_PHP56 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  5)
-    . include/php-7.0.sh
-    Install_PHP70 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  6)
-    . include/php-7.1.sh
-    Install_PHP71 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  7)
-    . include/php-7.2.sh
-    Install_PHP72 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  8)
-    . include/php-7.3.sh
-    Install_PHP73 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  9)
-    . include/php-7.4.sh
-    Install_PHP74 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  10)
-    . include/php-8.0.sh
-    Install_PHP80 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  11)
-    . include/php-8.1.sh
-    Install_PHP81 2>&1 | tee -a ${oneinstack_dir}/install.log
+  14)
+    . include/php-8.4.sh
+    Install_PHP84 2>&1 | tee -a ${oneinstack_dir}/install.log
     ;;
 esac
 
@@ -1158,19 +1040,15 @@ echo "Total OneinStack Install Time: ${CQUESTION}${installTime}${CEND} minutes"
 [[ "${nginx_option}" =~ ^[1-3]$ ]] && echo -e "\n$(printf "%-32s" "Nginx install dir":)${CMSG}${web_install_dir}${CEND}"
 [ "${apache_flag}" == 'y' ] && echo -e "\n$(printf "%-32s" "Apache install dir":)${CMSG}${apache_install_dir}${CEND}"
 [[ "${tomcat_option}" =~ ^[1-4]$ ]] && echo -e "\n$(printf "%-32s" "Tomcat install dir":)${CMSG}${tomcat_install_dir}${CEND}"
-[[ "${db_option}" =~ ^[1-9]$|^1[0-2]$ ]] && echo -e "\n$(printf "%-32s" "Database install dir:")${CMSG}${db_install_dir}${CEND}"
-[[ "${db_option}" =~ ^[1-9]$|^1[0-2]$ ]] && echo "$(printf "%-32s" "Database data dir:")${CMSG}${db_data_dir}${CEND}"
-[[ "${db_option}" =~ ^[1-9]$|^1[0-2]$ ]] && echo "$(printf "%-32s" "Database user:")${CMSG}root${CEND}"
-[[ "${db_option}" =~ ^[1-9]$|^1[0-2]$ ]] && echo "$(printf "%-32s" "Database password:")${CMSG}${dbrootpwd}${CEND}"
-[ "${db_option}" == '13' ] && echo -e "\n$(printf "%-32s" "PostgreSQL install dir:")${CMSG}${pgsql_install_dir}${CEND}"
-[ "${db_option}" == '13' ] && echo "$(printf "%-32s" "PostgreSQL data dir:")${CMSG}${pgsql_data_dir}${CEND}"
-[ "${db_option}" == '13' ] && echo "$(printf "%-32s" "PostgreSQL user:")${CMSG}postgres${CEND}"
-[ "${db_option}" == '13' ] && echo "$(printf "%-32s" "postgres password:")${CMSG}${dbpostgrespwd}${CEND}"
-[ "${db_option}" == '14' ] && echo -e "\n$(printf "%-32s" "MongoDB install dir:")${CMSG}${mongo_install_dir}${CEND}"
-[ "${db_option}" == '14' ] && echo "$(printf "%-32s" "MongoDB data dir:")${CMSG}${mongo_data_dir}${CEND}"
-[ "${db_option}" == '14' ] && echo "$(printf "%-32s" "MongoDB user:")${CMSG}root${CEND}"
-[ "${db_option}" == '14' ] && echo "$(printf "%-32s" "MongoDB password:")${CMSG}${dbmongopwd}${CEND}"
-[[ "${php_option}" =~ ^[1-9]$|^1[0-1]$ ]] && echo -e "\n$(printf "%-32s" "PHP install dir:")${CMSG}${php_install_dir}${CEND}"
+[ "${db_option}" == '1' ] && echo -e "\n$(printf "%-32s" "Database install dir:")${CMSG}${db_install_dir}${CEND}"
+[ "${db_option}" == '1' ] && echo "$(printf "%-32s" "Database data dir:")${CMSG}${db_data_dir}${CEND}"
+[ "${db_option}" == '1' ] && echo "$(printf "%-32s" "Database user:")${CMSG}root${CEND}"
+[ "${db_option}" == '1' ] && echo "$(printf "%-32s" "Database password:")${CMSG}${dbrootpwd}${CEND}"
+[ "${db_option}" == '2' ] && echo -e "\n$(printf "%-32s" "PostgreSQL install dir:")${CMSG}${pgsql_install_dir}${CEND}"
+[ "${db_option}" == '2' ] && echo "$(printf "%-32s" "PostgreSQL data dir:")${CMSG}${pgsql_data_dir}${CEND}"
+[ "${db_option}" == '2' ] && echo "$(printf "%-32s" "PostgreSQL user:")${CMSG}postgres${CEND}"
+[ "${db_option}" == '2' ] && echo "$(printf "%-32s" "postgres password:")${CMSG}${dbpostgrespwd}${CEND}"
+[[ "${php_option}" =~ ^1[3-4]$ ]] && echo -e "\n$(printf "%-32s" "PHP install dir:")${CMSG}${php_install_dir}${CEND}"
 [ "${phpcache_option}" == '1' ] && echo "$(printf "%-32s" "Opcache Control Panel URL:")${CMSG}http://${IPADDR}/ocp.php${CEND}"
 [ "${phpcache_option}" == '2' ] && echo "$(printf "%-32s" "APC Control Panel URL:")${CMSG}http://${IPADDR}/apc.php${CEND}"
 [ "${phpcache_option}" == '3' -a -e "${php_install_dir}/etc/php.d/04-xcache.ini" ] && echo "$(printf "%-32s" "xcache Control Panel URL:")${CMSG}http://${IPADDR}/xcache${CEND}"

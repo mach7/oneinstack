@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  ubuntu-24_04:
+    name: Ubuntu 24.04 lint and smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y shellcheck
+
+      - name: Bash syntax check (*.sh)
+        run: |
+          set -e
+          find . -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
+
+      - name: ShellCheck include scripts (non-fatal)
+        run: |
+          shopt -s nullglob
+          set +e
+          shellcheck -S warning include/*.sh || true
+
+      - name: Print installer help
+        run: |
+          bash install.sh --help | head -n 120 | sed -e 's/\x1b\[[0-9;]*m//g'
+
+      - name: Version banner
+        run: |
+          bash install.sh --version
+
+  debian-12:
+    name: Debian 12 lint and smoke
+    runs-on: ubuntu-latest
+    container:
+      image: debian:12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare tools
+        run: |
+          apt-get update -y
+          apt-get install -y bash grep findutils xz-utils ca-certificates curl shellcheck
+
+      - name: Bash syntax check (*.sh)
+        run: |
+          set -e
+          find . -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
+
+      - name: ShellCheck include scripts (non-fatal)
+        run: |
+          set +e
+          shellcheck -S warning include/*.sh || true
+
+      - name: Print installer help
+        run: |
+          bash install.sh --help | head -n 120 | sed -e 's/\x1b\[[0-9;]*m//g'
+
+      - name: Version banner
+        run: |
+          bash install.sh --version
+

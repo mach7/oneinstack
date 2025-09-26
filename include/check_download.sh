@@ -16,18 +16,28 @@ checkDownload() {
     src_url=${mirrorLink}/icu4c-${icu4c_ver}-src.tgz && Download_src
   fi
 
-  # General system utils
-  if [[ ${tomcat_option} =~ ^[1-4]$ ]] || [ "${apache_flag}" == 'y' ] || [[ ${php_option} =~ ^[1-9]$|^1[0-1]$ ]]; then
-    echo "Download openSSL..."
-    src_url=https://www.openssl.org/source/old/1.0.2/openssl-${openssl_ver}.tar.gz && Download_src
+  # General system utils (Prefer OpenSSL 3 if available)
+  if [[ ${tomcat_option} =~ ^[1-4]$ ]] || [ "${apache_flag}" == 'y' ] || [[ ${php_option} =~ ^[1-9]$|^1[0-4]$ ]]; then
+    if [ -n "${openssl3_ver}" ]; then
+      echo "Download openSSL 3..."
+      src_url=https://www.openssl.org/source/openssl-${openssl3_ver}.tar.gz && Download_src
+    else
+      echo "Download openSSL (legacy)..."
+      src_url=https://www.openssl.org/source/old/1.0.2/openssl-${openssl_ver}.tar.gz && Download_src
+    fi
     echo "Download cacert.pem..."
     src_url=https://curl.se/ca/cacert.pem && Download_src
   fi
 
-  # openssl1.1
+  # openssl (prefer 3.x if provided)
   if [[ ${nginx_option} =~ ^[1-3]$ ]]; then
-      echo "Download openSSL1.1..."
-      src_url=https://www.openssl.org/source/openssl-${openssl11_ver}.tar.gz && Download_src
+      if [ -n "${openssl3_ver}" ]; then
+        echo "Download openSSL 3..."
+        src_url=https://www.openssl.org/source/openssl-${openssl3_ver}.tar.gz && Download_src
+      else
+        echo "Download openSSL1.1..."
+        src_url=https://www.openssl.org/source/openssl-${openssl11_ver}.tar.gz && Download_src
+      fi
   fi
 
   # jemalloc
@@ -52,10 +62,15 @@ checkDownload() {
       ;;
   esac
 
-  # pcre
+  # pcre / pcre2
   if [[ "${nginx_option}" =~ ^[1-3]$ ]] || [ "${apache_flag}" == 'y' ]; then
-    echo "Download pcre..."
-    src_url=https://downloads.sourceforge.net/project/pcre/pcre/${pcre_ver}/pcre-${pcre_ver}.tar.gz && Download_src
+    if [ -n "${pcre2_ver}" ]; then
+      echo "Download pcre2..."
+      src_url=https://github.com/PhilipHazel/pcre2/releases/download/pcre2-${pcre2_ver}/pcre2-${pcre2_ver}.tar.gz && Download_src
+    else
+      echo "Download pcre..."
+      src_url=https://downloads.sourceforge.net/project/pcre/pcre/${pcre_ver}/pcre-${pcre_ver}.tar.gz && Download_src
+    fi
   fi
 
   # apache
@@ -126,22 +141,22 @@ checkDownload() {
 
     case "${db_option}" in
       1)
-        # MySQL 8.0
+        # MySQL 8.4 LTS
         if [ "${IPADDR_COUNTRY}"x == "CN"x ]; then
-          DOWN_ADDR_MYSQL=http://mirrors.aliyun.com/mysql/MySQL-8.0
-          DOWN_ADDR_MYSQL_BK=http://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-8.0
-          DOWN_ADDR_MYSQL_BK2=http://repo.huaweicloud.com/mysql/Downloads/MySQL-8.0
+          DOWN_ADDR_MYSQL=http://mirrors.aliyun.com/mysql/Enterprise/MySQL-8.4
+          DOWN_ADDR_MYSQL_BK=http://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-8.4
+          DOWN_ADDR_MYSQL_BK2=http://repo.huaweicloud.com/mysql/Downloads/MySQL-8.4
         else
-          DOWN_ADDR_MYSQL=https://cdn.mysql.com/Downloads/MySQL-8.0
-          DOWN_ADDR_MYSQL_BK=https://mirrors.dotsrc.org/mysql/Downloads/MySQL-8.0
+          DOWN_ADDR_MYSQL=https://cdn.mysql.com/Downloads/MySQL-8.4
+          DOWN_ADDR_MYSQL_BK=https://mirrors.dotsrc.org/mysql/Downloads/MySQL-8.4
         fi
 
         if [ "${dbinstallmethod}" == '1' ]; then
-          echo "Download MySQL 8.0 binary package..."
-          FILE_NAME=mysql-${mysql80_ver}-linux-glibc2.12-${SYS_BIT_b}.tar.xz
+          echo "Download MySQL 8.4 binary package..."
+          FILE_NAME=mysql-${mysql84_ver}-${mysql_glibc_suffix}-${SYS_BIT_b}.tar.xz
         elif [ "${dbinstallmethod}" == '2' ]; then
-          echo "Download MySQL 8.0 source package..."
-          FILE_NAME=mysql-${mysql80_ver}.tar.gz
+          echo "Download MySQL 8.4 source package..."
+          FILE_NAME=mysql-${mysql84_ver}.tar.gz
         fi
         # start download
         src_url=${DOWN_ADDR_MYSQL}/${FILE_NAME} && Download_src
@@ -501,7 +516,7 @@ checkDownload() {
   fi
 
   # PHP
-  if [[ "${php_option}" =~ ^[1-9]$|^1[0-1]$ ]] || [[ "${mphp_ver}" =~ ^5[3-6]$|^7[0-4]$|^8[0-1]$ ]]; then
+  if [[ "${php_option}" =~ ^1[3-4]$ ]] || [[ "${mphp_ver}" =~ ^8[3-4]$ ]]; then
     echo "PHP common..."
     src_url=${mirrorLink}/libiconv-${libiconv_ver}.tar.gz && Download_src
     src_url=https://curl.haxx.se/download/curl-${curl_ver}.tar.gz && Download_src
@@ -511,43 +526,58 @@ checkDownload() {
     src_url=${mirrorLink}/freetype-${freetype_ver}.tar.gz && Download_src
   fi
 
-  if [ "${php_option}" == '1' ] || [ "${mphp_ver}" == '53' ]; then
+  if false; then
     src_url=${mirrorLink}/debian_patches_disable_SSLv2_for_openssl_1_0_0.patch && Download_src
     src_url=${mirrorLink}/php5.3patch && Download_src
     src_url=https://secure.php.net/distributions/php-${php53_ver}.tar.gz && Download_src
     src_url=${mirrorLink}/fpm-race-condition.patch && Download_src
-  elif [ "${php_option}" == '2' ] || [ "${mphp_ver}" == '54' ]; then
+  elif false; then
     src_url=https://secure.php.net/distributions/php-${php54_ver}.tar.gz && Download_src
     src_url=${mirrorLink}/fpm-race-condition.patch && Download_src
-  elif [ "${php_option}" == '3' ] || [ "${mphp_ver}" == '55' ]; then
+  elif false; then
     src_url=https://secure.php.net/distributions/php-${php55_ver}.tar.gz && Download_src
     src_url=${mirrorLink}/fpm-race-condition.patch && Download_src
-  elif [ "${php_option}" == '4' ] || [ "${mphp_ver}" == '56' ]; then
+  elif false; then
     src_url=https://secure.php.net/distributions/php-${php56_ver}.tar.gz && Download_src
-  elif [ "${php_option}" == '5' ] || [ "${mphp_ver}" == '70' ]; then
+  elif false; then
     src_url=https://secure.php.net/distributions/php-${php70_ver}.tar.gz && Download_src
-  elif [ "${php_option}" == '6' ] || [ "${mphp_ver}" == '71' ]; then
+  elif false; then
     src_url=https://secure.php.net/distributions/php-${php71_ver}.tar.gz && Download_src
-  elif [ "${php_option}" == '7' ] || [ "${mphp_ver}" == '72' ]; then
+  elif false; then
     src_url=https://secure.php.net/distributions/php-${php72_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/argon2-${argon2_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/libsodium-${libsodium_ver}.tar.gz && Download_src
-  elif [ "${php_option}" == '8' ] || [ "${mphp_ver}" == '73' ]; then
+  elif false; then
     src_url=https://secure.php.net/distributions/php-${php73_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/argon2-${argon2_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/libsodium-${libsodium_ver}.tar.gz && Download_src
-  elif [ "${php_option}" == '9' ] || [ "${mphp_ver}" == '74' ]; then
+  elif false; then
     src_url=https://secure.php.net/distributions/php-${php74_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/argon2-${argon2_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/libsodium-${libsodium_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/libzip-${libzip_ver}.tar.gz && Download_src
-  elif [ "${php_option}" == '10' ] || [ "${mphp_ver}" == '80' ]; then
+  elif false; then
     src_url=https://secure.php.net/distributions/php-${php80_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/argon2-${argon2_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/libsodium-${libsodium_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/libzip-${libzip_ver}.tar.gz && Download_src
-  elif [ "${php_option}" == '11' ] || [ "${mphp_ver}" == '81' ]; then
+  elif false; then
     src_url=https://secure.php.net/distributions/php-${php81_ver}.tar.gz && Download_src
+    src_url=http://mirrors.linuxeye.com/oneinstack/src/argon2-${argon2_ver}.tar.gz && Download_src
+    src_url=http://mirrors.linuxeye.com/oneinstack/src/libsodium-${libsodium_ver}.tar.gz && Download_src
+    src_url=http://mirrors.linuxeye.com/oneinstack/src/libzip-${libzip_ver}.tar.gz && Download_src
+  elif [ "${php_option}" == '12' ] || [ "${mphp_ver}" == '82' ]; then
+    src_url=https://secure.php.net/distributions/php-${php82_ver}.tar.gz && Download_src
+    src_url=http://mirrors.linuxeye.com/oneinstack/src/argon2-${argon2_ver}.tar.gz && Download_src
+    src_url=http://mirrors.linuxeye.com/oneinstack/src/libsodium-${libsodium_ver}.tar.gz && Download_src
+    src_url=http://mirrors.linuxeye.com/oneinstack/src/libzip-${libzip_ver}.tar.gz && Download_src
+  elif [ "${php_option}" == '13' ] || [ "${mphp_ver}" == '83' ]; then
+    src_url=https://secure.php.net/distributions/php-${php83_ver}.tar.gz && Download_src
+    src_url=http://mirrors.linuxeye.com/oneinstack/src/argon2-${argon2_ver}.tar.gz && Download_src
+    src_url=http://mirrors.linuxeye.com/oneinstack/src/libsodium-${libsodium_ver}.tar.gz && Download_src
+    src_url=http://mirrors.linuxeye.com/oneinstack/src/libzip-${libzip_ver}.tar.gz && Download_src
+  elif [ "${php_option}" == '14' ] || [ "${mphp_ver}" == '84' ]; then
+    src_url=https://secure.php.net/distributions/php-${php84_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/argon2-${argon2_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/libsodium-${libsodium_ver}.tar.gz && Download_src
     src_url=http://mirrors.linuxeye.com/oneinstack/src/libzip-${libzip_ver}.tar.gz && Download_src

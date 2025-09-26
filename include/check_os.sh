@@ -37,7 +37,7 @@ command -v lsb_release >/dev/null 2>&1 || { echo "${CFAILURE}${PM} source failed
 
 # Get OS Version
 OS=$(lsb_release -is)
-if [[ "${OS}" =~ ^CentOS$|^CentOSStream$|^RedHat$|^Rocky$|^Fedora$|^Amazon$|^AlibabaCloud$|^AlibabaCloud\(AliyunLinux\)$|^AnolisOS$|^EulerOS$|^openEuler$ ]]; then
+if [[ "${OS}" =~ ^CentOS$|^CentOSStream$|^RedHat$|^Rocky$|^AlmaLinux$|^Fedora$|^Amazon$|^AlibabaCloud$|^AlibabaCloud\(AliyunLinux\)$|^AnolisOS$|^EulerOS$|^openEuler$ ]]; then
   LikeOS=RHEL
   RHEL_ver=$(lsb_release -rs | awk -F. '{print $1}' | awk '{print $1}')
   [[ "${OS}" =~ ^Fedora$ ]] && [ ${RHEL_ver} -ge 19 >/dev/null 2>&1 ] && { RHEL_ver=7; Fedora_ver=$(lsb_release -rs); }
@@ -57,16 +57,19 @@ elif [[ "${OS}" =~ ^Ubuntu$|^LinuxMint$|^elementary$ ]]; then
     [[ "${Ubuntu_ver}" =~ ^18$ ]] && Ubuntu_ver=16
     [[ "${Ubuntu_ver}" =~ ^19$ ]] && Ubuntu_ver=18
     [[ "${Ubuntu_ver}" =~ ^20$ ]] && Ubuntu_ver=20
+    [[ "${Ubuntu_ver}" =~ ^21$ ]] && Ubuntu_ver=22
+    [[ "${Ubuntu_ver}" =~ ^22$ ]] && Ubuntu_ver=24
   fi
   if [[ "${OS}" =~ ^elementary$ ]]; then
     [[ "${Ubuntu_ver}" =~ ^5$ ]] && Ubuntu_ver=18
     [[ "${Ubuntu_ver}" =~ ^6$ ]] && Ubuntu_ver=20
+    [[ "${Ubuntu_ver}" =~ ^7$ ]] && Ubuntu_ver=22
   fi
 fi
 
 # Check OS Version
-if [ ${RHEL_ver} -lt 6 >/dev/null 2>&1 ] || [ ${Debian_ver} -lt 8 >/dev/null 2>&1 ] || [ ${Ubuntu_ver} -lt 16 >/dev/null 2>&1 ]; then
-  echo "${CFAILURE}Does not support this OS, Please install CentOS 6+,Debian 8+,Ubuntu 16+ ${CEND}"
+if [ ${RHEL_ver} -lt 7 >/dev/null 2>&1 ] || [ ${Debian_ver} -lt 10 >/dev/null 2>&1 ] || [ ${Ubuntu_ver} -lt 20 >/dev/null 2>&1 ]; then
+  echo "${CFAILURE}Does not support this OS, Please install RHEL 7+, Debian 10+, Ubuntu 20+ ${CEND}"
   kill -9 $$; exit 1;
 fi
 
