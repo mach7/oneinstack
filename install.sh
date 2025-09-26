@@ -383,7 +383,7 @@ if [ ${ARG_NUM} == 0 ]; then
       if [ "${db_flag}" == 'y' ]; then
         while :; do echo
           echo 'Please select a version of the Database:'
-          echo -e "\t${CMSG} 1${CEND}. Install MySQL-8.0"
+          echo -e "\t${CMSG} 1${CEND}. Install MySQL-8.4"
           echo -e "\t${CMSG} 2${CEND}. Install MySQL-5.7"
           echo -e "\t${CMSG} 3${CEND}. Install MySQL-5.6"
           echo -e "\t${CMSG} 4${CEND}. Install MySQL-5.5"

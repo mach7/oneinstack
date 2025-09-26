@@ -141,22 +141,22 @@ checkDownload() {
 
     case "${db_option}" in
       1)
-        # MySQL 8.0
+        # MySQL 8.4 LTS
         if [ "${IPADDR_COUNTRY}"x == "CN"x ]; then
-          DOWN_ADDR_MYSQL=http://mirrors.aliyun.com/mysql/MySQL-8.0
-          DOWN_ADDR_MYSQL_BK=http://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-8.0
-          DOWN_ADDR_MYSQL_BK2=http://repo.huaweicloud.com/mysql/Downloads/MySQL-8.0
+          DOWN_ADDR_MYSQL=http://mirrors.aliyun.com/mysql/Enterprise/MySQL-8.4
+          DOWN_ADDR_MYSQL_BK=http://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-8.4
+          DOWN_ADDR_MYSQL_BK2=http://repo.huaweicloud.com/mysql/Downloads/MySQL-8.4
         else
-          DOWN_ADDR_MYSQL=https://cdn.mysql.com/Downloads/MySQL-8.0
-          DOWN_ADDR_MYSQL_BK=https://mirrors.dotsrc.org/mysql/Downloads/MySQL-8.0
+          DOWN_ADDR_MYSQL=https://cdn.mysql.com/Downloads/MySQL-8.4
+          DOWN_ADDR_MYSQL_BK=https://mirrors.dotsrc.org/mysql/Downloads/MySQL-8.4
         fi
 
         if [ "${dbinstallmethod}" == '1' ]; then
-          echo "Download MySQL 8.0 binary package..."
-          FILE_NAME=mysql-${mysql80_ver}-linux-glibc2.12-${SYS_BIT_b}.tar.xz
+          echo "Download MySQL 8.4 binary package..."
+          FILE_NAME=mysql-${mysql84_ver}-${mysql_glibc_suffix}-${SYS_BIT_b}.tar.xz
         elif [ "${dbinstallmethod}" == '2' ]; then
-          echo "Download MySQL 8.0 source package..."
-          FILE_NAME=mysql-${mysql80_ver}.tar.gz
+          echo "Download MySQL 8.4 source package..."
+          FILE_NAME=mysql-${mysql84_ver}.tar.gz
         fi
         # start download
         src_url=${DOWN_ADDR_MYSQL}/${FILE_NAME} && Download_src
