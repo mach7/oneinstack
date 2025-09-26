@@ -13,16 +13,23 @@ Install_openSSL() {
     echo "${CWARNING}openSSL already installed! ${CEND}"
   else
     pushd ${oneinstack_dir}/src > /dev/null
-    tar xzf openssl-${openssl_ver}.tar.gz
-    pushd openssl-${openssl_ver} > /dev/null
+    # Prefer OpenSSL 3.x if provided; fallback to legacy ${openssl_ver}
+    if [ -n "${openssl3_ver}" ] && [ -s "openssl-${openssl3_ver}.tar.gz" ]; then
+      tar xzf openssl-${openssl3_ver}.tar.gz
+      pushd openssl-${openssl3_ver} > /dev/null
+    else
+      tar xzf openssl-${openssl_ver}.tar.gz
+      pushd openssl-${openssl_ver} > /dev/null
+    fi
     make clean
     ./config -Wl,-rpath=${openssl_install_dir}/lib -fPIC --prefix=${openssl_install_dir} --openssldir=${openssl_install_dir}
     make depend
     make -j ${THREAD} && make install
     popd > /dev/null
-    if [ -f "${openssl_install_dir}/lib/libcrypto.a" ]; then
+    if [ -f "${openssl_install_dir}/lib/libcrypto.a" ] || [ -f "${openssl_install_dir}/lib64/libcrypto.a" ]; then
       echo "${CSUCCESS}openSSL installed successfully! ${CEND}"
       /bin/cp cacert.pem ${openssl_install_dir}/cert.pem
+      [ -n "${openssl3_ver}" ] && rm -rf openssl-${openssl3_ver}
       rm -rf openssl-${openssl_ver}
     else
       echo "${CFAILURE}openSSL install failed, Please contact the author! ${CEND}" && lsb_release -a
