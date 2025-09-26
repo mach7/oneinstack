@@ -4,6 +4,7 @@ nginx_ver=1.20.2
 tengine_ver=2.3.3
 openresty_ver=1.19.9.1
 openssl11_ver=1.1.1k
+openssl3_ver=3.3.1
 openssl_ver=1.0.2u
 
 tomcat10_ver=10.0.13
@@ -13,6 +14,7 @@ tomcat7_ver=7.0.109
 
 apache_ver=2.4.52
 pcre_ver=8.45
+pcre2_ver=10.44
 apr_ver=1.7.0
 apr_util_ver=1.6.1
 nghttp2_ver=1.42.0
