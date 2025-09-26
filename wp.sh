@@ -32,9 +32,10 @@ Usage: ./wp.sh [options]
   --email EMAIL             Email for ACME registration
   --no-ssl                  Do not enable HTTPS/Let’s Encrypt
   --dnsapi PROVIDER         Use ACME DNS API (e.g., cf, ali). Requires env exports.
-  --db_name NAME            Database name (optional)
-  --db_user USER            Database user (optional)
-  --db_pass PASS            Database password (optional)
+  --db_name NAME            Database name (optional; auto-created if omitted)
+  --db_user USER            Database user (optional; auto-created if omitted)
+  --db_pass PASS            Database password (optional; auto-created if omitted)
+  --db_root_password PASS   MySQL root password (overrides options.conf detection)
   --db_host HOST            Database host (default: 127.0.0.1)
   --title TITLE             WordPress site title (optional for wp-cli)
   --admin_user USERNAME     WordPress admin username (optional for wp-cli)
@@ -68,6 +69,7 @@ wp_title=
 wp_admin_user=
 wp_admin_pass=
 wp_admin_email=
+cli_db_rootpwd=
 
 while :; do
   [ -z "$1" ] && break
@@ -85,6 +87,7 @@ while :; do
     --db_user) db_user=$2; shift 2 ;;
     --db_pass) db_pass=$2; shift 2 ;;
     --db_host) db_host=$2; shift 2 ;;
+    --db_root_password) cli_db_rootpwd=$2; shift 2 ;;
     --title) wp_title=$2; shift 2 ;;
     --admin_user) wp_admin_user=$2; shift 2 ;;
     --admin_pass) wp_admin_pass=$2; shift 2 ;;
@@ -272,6 +275,57 @@ EOF
   fi
 fi
 
+# Database auto-provisioning (MySQL) when creds are missing
+if [ -z "${db_name:-}" ] || [ -z "${db_user:-}" ] || [ -z "${db_pass:-}" ]; then
+  # Prefer MySQL installed by OneinStack
+  MYSQL_BIN="${db_install_dir}/bin/mysql"
+  [ ! -x "$MYSQL_BIN" ] && MYSQL_BIN="mysql"
+
+  # Determine root password
+  dbrootpwd_eff=${cli_db_rootpwd:-${dbrootpwd:-}}
+  if ! $MYSQL_BIN -uroot -p"${dbrootpwd_eff}" -e "quit" >/dev/null 2>&1; then
+    # Attempt without password (rare)
+    if $MYSQL_BIN -uroot -e "quit" >/dev/null 2>&1; then
+      dbrootpwd_eff=""
+    else
+      echo "ERROR: Cannot connect to MySQL as root to create database. Provide --db_root_password or ensure options.conf has dbrootpwd set." >&2
+      exit 1
+    fi
+  fi
+
+  # Generate sensible defaults
+  domain_base=$(echo "$domain" | awk -F. '{print $(NF-1)"_"$NF}')
+  safe_base=$(echo "$domain_base" | tr -cd 'A-Za-z0-9_')
+  [ -z "$safe_base" ] && safe_base=site
+  gen_suffix=$(tr -dc A-Za-z0-9 </dev/urandom | head -c6)
+  db_name=${db_name:-wp_${safe_base}}
+  # MySQL db name max length 64
+  db_name=${db_name:0:60}
+  db_user=${db_user:-wp_${safe_base}}
+  # MySQL user max length 32
+  db_user=${db_user:0:24}_${gen_suffix}
+  db_user=${db_user:0:32}
+  db_pass=${db_pass:-$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c20)}
+
+  echo "==> Creating database and user in MySQL"
+  if [ -n "$dbrootpwd_eff" ]; then
+    AUTH_OPTS=( -uroot -p"${dbrootpwd_eff}" )
+  else
+    AUTH_OPTS=( -uroot )
+  fi
+  $MYSQL_BIN "${AUTH_OPTS[@]}" <<SQL
+CREATE DATABASE IF NOT EXISTS \`$db_name\` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE USER IF NOT EXISTS '$db_user'@'127.0.0.1' IDENTIFIED BY '$db_pass';
+CREATE USER IF NOT EXISTS '$db_user'@'localhost' IDENTIFIED BY '$db_pass';
+ALTER USER '$db_user'@'127.0.0.1' IDENTIFIED BY '$db_pass';
+ALTER USER '$db_user'@'localhost' IDENTIFIED BY '$db_pass';
+GRANT ALL PRIVILEGES ON \`$db_name\`.* TO '$db_user'@'127.0.0.1';
+GRANT ALL PRIVILEGES ON \`$db_name\`.* TO '$db_user'@'localhost';
+FLUSH PRIVILEGES;
+SQL
+  echo "Created DB: $db_name  User: $db_user"
+fi
+
 # Download and configure WordPress
 pushd "$root_dir" > /dev/null
 if [ ! -f wp-load.php ]; then
@@ -281,17 +335,15 @@ if [ ! -f wp-load.php ]; then
   rm -f latest.tar.gz
 fi
 
-# Create wp-config.php if db params provided
-if [ -n "${db_name:-}" ] && [ -n "${db_user:-}" ] && [ -n "${db_pass:-}" ]; then
-  if [ ! -f wp-config.php ]; then
-    cp wp-config-sample.php wp-config.php
-    sed -i "s/database_name_here/${db_name}/" wp-config.php
-    sed -i "s/username_here/${db_user}/" wp-config.php
-    sed -i "s/password_here/${db_pass}/" wp-config.php
-    sed -i "s/localhost/${db_host}/" wp-config.php
-    # Generate salts
-    perl -i -pe 'BEGIN {@c=("a".."z","A".."Z",0..9); push @c, split //, "!@#\$%^&*()-_ []{}<>~`+=,.;:/?|"; sub s0 { join "", map $c[rand @c], 1..64 }} s/put your unique phrase here/s0()/ge' wp-config.php
-  fi
+# Create wp-config.php using available DB params (auto-created if missing)
+if [ ! -f wp-config.php ]; then
+  cp wp-config-sample.php wp-config.php
+  sed -i "s/database_name_here/${db_name}/" wp-config.php
+  sed -i "s/username_here/${db_user}/" wp-config.php
+  sed -i "s/password_here/${db_pass}/" wp-config.php
+  sed -i "s/localhost/${db_host}/" wp-config.php
+  # Generate salts
+  perl -i -pe 'BEGIN {@c=("a".."z","A".."Z",0..9); push @c, split //, "!@#\$%^&*()-_ []{}<>~`+=,.;:/?|"; sub s0 { join "", map $c[rand @c], 1..64 }} s/put your unique phrase here/s0()/ge' wp-config.php
 fi
 
 chown -R ${run_user}:${run_group} .
@@ -301,4 +353,5 @@ popd > /dev/null
 printf "\n${CMSG}WordPress provisioning complete for ${domain}.${CEND}\n"
 [ -n "$need_ssl" ] && echo "HTTPS enabled via Let's Encrypt."
 [ -n "$aliases" ] && echo "Aliases: $aliases"
+echo "Database: name=${db_name} user=${db_user} host=${db_host}"
 
