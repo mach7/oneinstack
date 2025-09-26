@@ -49,8 +49,8 @@ Show_Help() {
   --apache                    Install Apache
   --apache_mode_option [1-2]  Apache2.4 mode, 1(default): php-fpm, 2: mod_php
   --apache_mpm_option [1-3]   Apache2.4 MPM, 1(default): event, 2: prefork, 3: worker
-  --php_option [1-14]         Install PHP version
-  --mphp_ver [53~84]          Install another PHP version (PATH: ${php_install_dir}\${mphp_ver})
+  --php_option [13-14]        Install PHP version (13: 8.3, 14: 8.4)
+  --mphp_ver [83~84]          Install another PHP version (PATH: ${php_install_dir}\${mphp_ver})
   --mphp_addons               Only install another PHP addons
   --phpcache_option [1-4]     Install PHP opcode cache, default: 1 opcache
   --php_extensions [ext name] Install PHP extensions, include zendguardloader,ioncube,
@@ -59,7 +59,7 @@ Show_Help() {
   --node                      Install Nodejs
   --tomcat_option [1-4]       Install Tomcat version
   --jdk_option [1-4]          Install JDK version
-  --db_option [1-14]          Install DB version
+  --db_option [1-2]           Install DB version (1: MySQL 8.4, 2: PostgreSQL)
   --dbinstallmethod [1-2]     DB install method, default: 1 binary install
   --dbrootpwd [password]      DB super password
   --pureftpd                  Install Pure-Ftpd
@@ -106,7 +106,7 @@ while :; do
       ;;
     --php_option)
       php_option=$2; shift 2
-      [[ ! ${php_option} =~ ^[1-9]$|^1[0-4]$ ]] && { echo "${CWARNING}php_option input error! Please only input number 1~14${CEND}"; exit 1; }
+      [[ ! ${php_option} =~ ^[13-14]$ ]] && { echo "${CWARNING}php_option input error! Please only input number 13~14${CEND}"; exit 1; }
       [ -e "${php_install_dir}/bin/phpize" ] && { echo "${CWARNING}PHP already installed! ${CEND}"; unset php_option; }
       ;;
     --mphp_ver)
@@ -785,54 +785,6 @@ fi
 
 # PHP
 case "${php_option}" in
-  1)
-    . include/php-5.3.sh
-    Install_PHP53 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  2)
-    . include/php-5.4.sh
-    Install_PHP54 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  3)
-    . include/php-5.5.sh
-    Install_PHP55 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  4)
-    . include/php-5.6.sh
-    Install_PHP56 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  5)
-    . include/php-7.0.sh
-    Install_PHP70 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  6)
-    . include/php-7.1.sh
-    Install_PHP71 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  7)
-    . include/php-7.2.sh
-    Install_PHP72 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  8)
-    . include/php-7.3.sh
-    Install_PHP73 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  9)
-    . include/php-7.4.sh
-    Install_PHP74 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  10)
-    . include/php-8.0.sh
-    Install_PHP80 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  11)
-    . include/php-8.1.sh
-    Install_PHP81 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
-  12)
-    . include/php-8.2.sh
-    Install_PHP82 2>&1 | tee -a ${oneinstack_dir}/install.log
-    ;;
   13)
     . include/php-8.3.sh
     Install_PHP83 2>&1 | tee -a ${oneinstack_dir}/install.log
