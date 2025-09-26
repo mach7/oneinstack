@@ -401,10 +401,8 @@ if [ ${ARG_NUM} == 0 ]; then
               fi
               [ -n "`echo ${dbpwd} | grep '[+|&]'`" ] && { echo "${CWARNING}input error,not contain a plus sign (+) and & ${CEND}"; continue; }
               if (( ${#dbpwd} >= 5 )); then
-                if [ "${db_option}" == '13' ]; then
+                if [ "${db_option}" == '2' ]; then
                   dbpostgrespwd=${dbpwd}
-                elif [ "${db_option}" == '14' ]; then
-                  dbmongopwd=${dbpwd}
                 else
                   dbrootpwd=${dbpwd}
                 fi
@@ -430,7 +428,7 @@ if [ ${ARG_NUM} == 0 ]; then
             fi
             break
           else
-            echo "${CWARNING}input error! Please only input number 1~14${CEND}"
+            echo "${CWARNING}input error! Please only input number 1~2${CEND}"
           fi
         done
       fi
