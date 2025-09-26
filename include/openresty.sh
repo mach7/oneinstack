@@ -15,20 +15,44 @@ Install_OpenResty() {
   id -u ${run_user} >/dev/null 2>&1
   [ $? -ne 0 ] && useradd -g ${run_group} -M -s /sbin/nologin ${run_user}
 
-  tar xzf pcre-${pcre_ver}.tar.gz
+  # Prefer PCRE2 when available; fallback to PCRE
+  if [ -n "${pcre2_ver}" ] && [ -s "pcre2-${pcre2_ver}.tar.gz" ]; then
+    tar xzf pcre2-${pcre2_ver}.tar.gz
+    PCRE_SRC_DIR=../pcre2-${pcre2_ver}
+  else
+    tar xzf pcre-${pcre_ver}.tar.gz
+    PCRE_SRC_DIR=../pcre-${pcre_ver}
+  fi
   tar xzf openresty-${openresty_ver}.tar.gz
-  tar xzf openssl-${openssl11_ver}.tar.gz
+  # Prefer OpenSSL 3.x when available; fallback to 1.1.1
+  if [ -n "${openssl3_ver}" ] && [ -s "openssl-${openssl3_ver}.tar.gz" ]; then
+    tar xzf openssl-${openssl3_ver}.tar.gz
+    OPENSSL_SRC_DIR=../openssl-${openssl3_ver}
+  else
+    tar xzf openssl-${openssl11_ver}.tar.gz
+    OPENSSL_SRC_DIR=../openssl-${openssl11_ver}
+  fi
   pushd openresty-${openresty_ver} > /dev/null
 
   # close debug
   sed -i 's@CFLAGS="$CFLAGS -g"@#CFLAGS="$CFLAGS -g"@' bundle/nginx-${openresty_ver%.*}/auto/cc/gcc # close debug
 
   [ ! -d "${openresty_install_dir}" ] && mkdir -p ${openresty_install_dir}
-  ./configure --prefix=${openresty_install_dir} --user=${run_user} --group=${run_group} --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_realip_module --with-http_flv_module --with-http_mp4_module --with-openssl=../openssl-${openssl11_ver} --with-pcre=../pcre-${pcre_ver} --with-pcre-jit --with-ld-opt='-ljemalloc -Wl,-u,pcre_version' ${nginx_modules_options}
+  ./configure --prefix=${openresty_install_dir} --user=${run_user} --group=${run_group} --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_realip_module --with-http_flv_module --with-http_mp4_module --with-openssl=${OPENSSL_SRC_DIR} --with-pcre=${PCRE_SRC_DIR} --with-pcre-jit --with-ld-opt='-ljemalloc -Wl,-u,pcre_version' ${nginx_modules_options}
   make -j ${THREAD} && make install
   if [ -e "${openresty_install_dir}/nginx/conf/nginx.conf" ]; then
     popd > /dev/null
-    rm -rf pcre-${pcre_ver} openssl-${openssl11_ver} openresty-${openresty_ver}
+    if [ -n "${pcre2_ver}" ] && [ -d "pcre2-${pcre2_ver}" ]; then
+      rm -rf pcre2-${pcre2_ver}
+    else
+      rm -rf pcre-${pcre_ver}
+    fi
+    if [ -n "${openssl3_ver}" ] && [ -d "openssl-${openssl3_ver}" ]; then
+      rm -rf openssl-${openssl3_ver}
+    else
+      rm -rf openssl-${openssl11_ver}
+    fi
+    rm -rf openresty-${openresty_ver}
     echo "${CSUCCESS}OpenResty installed successfully! ${CEND}"
   else
     rm -rf ${openresty_install_dir}

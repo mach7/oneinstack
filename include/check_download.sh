@@ -24,10 +24,15 @@ checkDownload() {
     src_url=https://curl.se/ca/cacert.pem && Download_src
   fi
 
-  # openssl1.1
+  # openssl (prefer 3.x if provided)
   if [[ ${nginx_option} =~ ^[1-3]$ ]]; then
-      echo "Download openSSL1.1..."
-      src_url=https://www.openssl.org/source/openssl-${openssl11_ver}.tar.gz && Download_src
+      if [ -n "${openssl3_ver}" ]; then
+        echo "Download openSSL 3..."
+        src_url=https://www.openssl.org/source/openssl-${openssl3_ver}.tar.gz && Download_src
+      else
+        echo "Download openSSL1.1..."
+        src_url=https://www.openssl.org/source/openssl-${openssl11_ver}.tar.gz && Download_src
+      fi
   fi
 
   # jemalloc
@@ -52,10 +57,15 @@ checkDownload() {
       ;;
   esac
 
-  # pcre
+  # pcre / pcre2
   if [[ "${nginx_option}" =~ ^[1-3]$ ]] || [ "${apache_flag}" == 'y' ]; then
-    echo "Download pcre..."
-    src_url=https://downloads.sourceforge.net/project/pcre/pcre/${pcre_ver}/pcre-${pcre_ver}.tar.gz && Download_src
+    if [ -n "${pcre2_ver}" ]; then
+      echo "Download pcre2..."
+      src_url=https://github.com/PhilipHazel/pcre2/releases/download/pcre2-${pcre2_ver}/pcre2-${pcre2_ver}.tar.gz && Download_src
+    else
+      echo "Download pcre..."
+      src_url=https://downloads.sourceforge.net/project/pcre/pcre/${pcre_ver}/pcre-${pcre_ver}.tar.gz && Download_src
+    fi
   fi
 
   # apache
