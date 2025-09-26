@@ -16,6 +16,8 @@ printf "#       OneinStack WordPress setup (non-interactive helper)           #\
 printf "#       Uses install.sh under the hood with sensible defaults         #\n"
 printf "#######################################################################\n\n"
 
+echo "[setup] Starting setup.sh in $ONEINSTACK_DIR"
+
 # Guard: require root
 if [ "$(id -u)" != "0" ]; then
   echo "Error: You must be root to run this script" >&2
@@ -23,7 +25,8 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 # Load shared config if present to honor directories and paths
-[ -f "$ONEINSTACK_DIR/options.conf" ] && . "$ONEINSTACK_DIR/options.conf"
+[ -f "$ONEINSTACK_DIR/options.conf" ] && { echo "[setup] Loading options.conf"; . "$ONEINSTACK_DIR/options.conf"; }
+echo "[setup] Defaults and environment detection"
 
 #
 # Defaults (can be overridden via environment variables when invoking this script)
@@ -43,7 +46,20 @@ fi
 
 # Generate a strong DB password if not provided
 if [ -z "$WP_DBROOTPWD" ]; then
-  WP_DBROOTPWD=$(tr -dc A-Za-z0-9 </dev/urandom | head -c16)
+  if command -v tr >/dev/null 2>&1; then
+    # Fallback-safe generator; locale independent
+    WP_DBROOTPWD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c16 || true)
+  fi
+  if [ -z "${WP_DBROOTPWD:-}" ]; then
+    # Final fallback to openssl if tr failed
+    if command -v openssl >/dev/null 2>&1; then
+      WP_DBROOTPWD=$(openssl rand -base64 18 | tr -dc 'A-Za-z0-9' | head -c16)
+    else
+      # Last resort static (warn)
+      echo "[setup] WARNING: could not generate random password; using weak default" >&2
+      WP_DBROOTPWD="ChangeMe12345678"
+    fi
+  fi
 fi
 
 echo "==> Setting up WordPress-ready environment with OneinStack"
