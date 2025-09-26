@@ -63,11 +63,29 @@ apt-get -y install wget screen
 
 #### Download Source and Install
 
+From GitHub (git clone):
 ```bash
-wget http://mirrors.linuxeye.com/oneinstack-full.tar.gz
-tar xzf oneinstack-full.tar.gz
-cd oneinstack 
+git clone https://github.com/mach7/oneinstack.git
+cd oneinstack
 ```
+
+Or download a tarball from GitHub:
+```bash
+curl -L https://codeload.github.com/mach7/oneinstack/tar.gz/refs/heads/main -o oneinstack-main.tar.gz
+tar xzf oneinstack-main.tar.gz
+cd oneinstack-main
+```
+
+If tarball fails in your environment, use ZIP fallback:
+```bash
+curl -L https://codeload.github.com/mach7/oneinstack/zip/refs/heads/main -o oneinstack-main.zip
+unzip oneinstack-main.zip
+cd oneinstack-main
+```
+
+Troubleshooting downloads:
+- Verify redirects followed: `curl -I -L https://github.com/mach7/oneinstack/archive/refs/heads/main.tar.gz`
+- Confirm archive type: `file oneinstack-main.tar.gz` should report gzip; if not, re-download with the codeload URLs above.
 
 If you disconnect during installation, you can execute the command `screen -r oneinstack` to reconnect to the install window
 ```bash
