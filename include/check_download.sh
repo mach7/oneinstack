@@ -16,10 +16,15 @@ checkDownload() {
     src_url=${mirrorLink}/icu4c-${icu4c_ver}-src.tgz && Download_src
   fi
 
-  # General system utils
-  if [[ ${tomcat_option} =~ ^[1-4]$ ]] || [ "${apache_flag}" == 'y' ] || [[ ${php_option} =~ ^[1-9]$|^1[0-1]$ ]]; then
-    echo "Download openSSL..."
-    src_url=https://www.openssl.org/source/old/1.0.2/openssl-${openssl_ver}.tar.gz && Download_src
+  # General system utils (Prefer OpenSSL 3 if available)
+  if [[ ${tomcat_option} =~ ^[1-4]$ ]] || [ "${apache_flag}" == 'y' ] || [[ ${php_option} =~ ^[1-9]$|^1[0-4]$ ]]; then
+    if [ -n "${openssl3_ver}" ]; then
+      echo "Download openSSL 3..."
+      src_url=https://www.openssl.org/source/openssl-${openssl3_ver}.tar.gz && Download_src
+    else
+      echo "Download openSSL (legacy)..."
+      src_url=https://www.openssl.org/source/old/1.0.2/openssl-${openssl_ver}.tar.gz && Download_src
+    fi
     echo "Download cacert.pem..."
     src_url=https://curl.se/ca/cacert.pem && Download_src
   fi
