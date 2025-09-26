@@ -9,6 +9,13 @@ set -euo pipefail
 ONEINSTACK_DIR=$(cd "$(dirname "$(readlink -f "$0")")" && pwd)
 cd "$ONEINSTACK_DIR"
 
+# Friendly banner similar to install.sh
+[ -t 1 ] && [ -n "$TERM" ] && clear
+printf "\n#######################################################################\n"
+printf "#       OneinStack WordPress setup (non-interactive helper)           #\n"
+printf "#       Uses install.sh under the hood with sensible defaults         #\n"
+printf "#######################################################################\n\n"
+
 # Guard: require root
 if [ "$(id -u)" != "0" ]; then
   echo "Error: You must be root to run this script" >&2
@@ -66,8 +73,16 @@ fi
 [ "$WP_REBOOT" = "y" ] && args+=( --reboot )
 
 # Run installer non-interactively
+echo
 echo "==> Running installer"
-./install.sh "${args[@]}"
+echo -n "    Command: install.sh"; for a in "${args[@]}"; do printf ' %q' "$a"; done; echo
+
+# Force line-buffered stdout/stderr so progress is visible immediately
+if command -v stdbuf >/dev/null 2>&1; then
+  stdbuf -oL -eL ./install.sh "${args[@]}"
+else
+  ./install.sh "${args[@]}"
+fi
 
 echo
 echo "==> Environment ready"
