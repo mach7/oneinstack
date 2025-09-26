@@ -23,27 +23,27 @@ Script properties:
 
 | Component | Version | Purpose |
 | --- | --- | --- |
-| Nginx | 1.26.2 | Web server |
-| Tengine | 2.3.3 | High-performance Nginx fork |
-| OpenResty | 1.21.4.3 | Nginx with Lua (dynamic routing, WAF, etc.) |
-| Apache HTTP Server | 2.4.62 | Web server |
-| OpenSSL | 3.3.1 | TLS/cryptography libraries used by servers |
-| MySQL | 8.4.2 | Relational database |
-| PostgreSQL | 16.3 | Relational database |
-| PHP | 8.3, 8.4 | Server-side scripting (FPM) |
-| Multi-PHP (optional) | 5.3–8.1 | Run multiple PHP versions side-by-side |
-| Redis | 7.2.5 | In-memory data store/cache |
-| Memcached | 1.6.24 | In-memory cache |
-| Node.js | 22.7.0 | JavaScript runtime/tooling |
-| JDK | 11, 8, 7, 6 | Java runtimes |
-| Tomcat | 10/9/8/7 | Java application server |
-| phpMyAdmin | 5.2.1 | MySQL/MariaDB web administration |
-| Pure-FTPd | 1.0.49 | FTP server |
-| jemalloc | 5.2.1 | Memory allocator to optimize MySQL/Nginx |
-| ImageMagick | 7.1.0-19 | Image processing tools |
-| GraphicsMagick | 1.3.36 | Image processing tools |
-| ngx_lua_waf | — | Web application firewall for Nginx/OpenResty |
-| PHP extensions | various | redis, memcached, mongodb, apcu, opcache, swoole, xdebug, etc. |
+| Nginx | 1.26.2 | Nginx is a high‑performance web server and reverse proxy. It efficiently serves static files and balances load across upstreams. It is widely used for TLS termination, HTTP/2, and as a gateway to PHP‑FPM and other backends. |
+| Tengine | 2.3.3 | Tengine is an enterprise fork of Nginx maintained by Alibaba. It integrates patches and features optimized for large‑scale deployments. It offers enhanced performance metrics, connection handling, and module ecosystem compatibility. |
+| OpenResty | 1.21.4.3 | OpenResty bundles Nginx with LuaJIT to enable dynamic request processing. It lets you write high‑performance web logic directly in Lua running inside Nginx. This is ideal for routing, A/B testing, WAFs, and caching at the edge. |
+| Apache HTTP Server | 2.4.62 | Apache is a robust and extensible web server. It provides rich module support and flexible configuration models such as event and worker MPMs. It excels for legacy applications and scenarios that prefer `.htaccess`. |
+| OpenSSL | 3.3.1 | OpenSSL provides cryptographic primitives and TLS protocols used by servers. It enables HTTPS, certificate management, and strong encryption. The stack relies on it for secure communications and modern cipher support. |
+| MySQL | 8.4.2 | MySQL is a popular relational database for transactional workloads. It powers many PHP and web applications with SQL and ACID properties. This build targets the current LTS series for long‑term stability. |
+| PostgreSQL | 16.3 | PostgreSQL is an advanced open‑source relational database. It emphasizes standards compliance, extensibility, and reliability. It is well suited for complex queries, JSON, and analytical workloads. |
+| PHP | 8.3, 8.4 | PHP powers dynamic server‑side applications and frameworks. It runs via PHP‑FPM for efficient request handling behind Nginx/Apache. The provided versions cover current stable lines for performance and security. |
+| Multi-PHP (optional) | 5.3–8.1 | Multiple PHP versions can run side‑by‑side. This allows hosting apps with different runtime requirements on one server. Service names and sockets are isolated to prevent conflicts. |
+| Redis | 7.2.5 | Redis is an in‑memory data store used for caching, queues, and ephemeral data. It delivers low‑latency operations with persistence options. Many PHP applications use it to accelerate sessions and application data. |
+| Memcached | 1.6.24 | Memcached is a high‑speed in‑memory cache. It is simple, distributed, and optimized for transient key‑value data. It helps reduce database load and speed up dynamic sites. |
+| Node.js | 22.7.0 | Node.js provides a JavaScript runtime and tooling for modern frontends. It enables building assets, SSR, and utility scripts. It is commonly used to compile and bundle frontend resources during deploys. |
+| JDK | 11, 8, 7, 6 | The Java Development Kit provides the Java runtime and tools. It supports running and building Java applications. Multiple versions are available to match application compatibility requirements. |
+| Tomcat | 10/9/8/7 | Apache Tomcat is a servlet container for Java web applications. It runs WAR packages and supports JSP/Servlet specifications. It is lightweight and suitable for standalone Java services. |
+| phpMyAdmin | 5.2.1 | phpMyAdmin is a web interface to administer MySQL/MariaDB. It simplifies database management tasks like queries, backups, and user privileges. It is convenient for quick operations without shell access. |
+| Pure-FTPd | 1.0.49 | Pure‑FTPd is a security‑focused FTP server. It supports virtual users, TLS, and resource controls. It is appropriate for simple file transfer workflows and automated pipelines. |
+| jemalloc | 5.2.1 | jemalloc is a general‑purpose memory allocator. It can reduce fragmentation and improve multi‑threaded performance. It is often used to optimize MySQL and Nginx memory behavior. |
+| ImageMagick | 7.1.0-19 | ImageMagick provides image processing libraries and tools. It enables resizing, format conversion, and transformations. PHP extensions can leverage it for media‑heavy sites. |
+| GraphicsMagick | 1.3.36 | GraphicsMagick is a fork focused on stability and performance. It is often faster and lighter for batch operations. It can be used as an alternative to ImageMagick depending on needs. |
+| ngx_lua_waf | — | ngx_lua_waf is a web application firewall built on OpenResty. It helps block common attacks like SQL injection and XSS. It is customizable through Lua rules for your environment. |
+| PHP extensions | various | Common PHP extensions extend functionality for caching, debugging, and integrations. Examples include Redis, Memcached, MongoDB, APCu, OPcache, Swoole, and Xdebug. You can install them selectively to match application needs. |
 
 ## Installation
 
