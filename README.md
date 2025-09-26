@@ -19,6 +19,32 @@ Script properties:
 - Provide Nginx/Tengine/OpenResty/Apache/Tomcat, MySQL/MariaDB/Percona, PHP, Redis, Memcached, phpMyAdmin upgrade script
 - Provide local,remote(rsync between servers),Aliyun OSS,Qcloud COS,UPYUN,QINIU,Amazon S3,Google Drive and Dropbox backup script
 
+## Supported software
+
+| Component | Version | Purpose |
+| --- | --- | --- |
+| Nginx | 1.26.2 | Web server |
+| Tengine | 2.3.3 | High-performance Nginx fork |
+| OpenResty | 1.21.4.3 | Nginx with Lua (dynamic routing, WAF, etc.) |
+| Apache HTTP Server | 2.4.62 | Web server |
+| OpenSSL | 3.3.1 | TLS/cryptography libraries used by servers |
+| MySQL | 8.4.2 | Relational database |
+| PostgreSQL | 16.3 | Relational database |
+| PHP | 8.3, 8.4 | Server-side scripting (FPM) |
+| Multi-PHP (optional) | 5.3–8.1 | Run multiple PHP versions side-by-side |
+| Redis | 7.2.5 | In-memory data store/cache |
+| Memcached | 1.6.24 | In-memory cache |
+| Node.js | 22.7.0 | JavaScript runtime/tooling |
+| JDK | 11, 8, 7, 6 | Java runtimes |
+| Tomcat | 10/9/8/7 | Java application server |
+| phpMyAdmin | 5.2.1 | MySQL/MariaDB web administration |
+| Pure-FTPd | 1.0.49 | FTP server |
+| jemalloc | 5.2.1 | Memory allocator to optimize MySQL/Nginx |
+| ImageMagick | 7.1.0-19 | Image processing tools |
+| GraphicsMagick | 1.3.36 | Image processing tools |
+| ngx_lua_waf | — | Web application firewall for Nginx/OpenResty |
+| PHP extensions | various | redis, memcached, mongodb, apcu, opcache, swoole, xdebug, etc. |
+
 ## Installation
 
 Install the dependencies for your distro, download the source and run the installation script.
@@ -43,7 +69,7 @@ tar xzf oneinstack-full.tar.gz
 cd oneinstack 
 ```
 
-If you disconnect during installation, you can execute the command `screen -r lnmp` to reconnect to the install window
+If you disconnect during installation, you can execute the command `screen -r oneinstack` to reconnect to the install window
 ```bash
 screen -S oneinstack 
 ```
@@ -59,6 +85,8 @@ If you need to modify the directory (installation, data storage, Nginx logs), mo
 ~/oneinstack/install.sh --mphp_ver 54
 
 ```
+
+Valid values for `--mphp_ver`: 53, 54, 55, 56, 70, 71, 72, 73, 74, 80, 81
 
 ## How to add Extensions
 
@@ -149,9 +177,8 @@ service memcached {start|stop|status|restart|reload}
 ~/oneinstack/uninstall.sh
 ```
 
-## Installation
+## Community
 
 For feedback, questions, and to follow the progress of the project: <br />
 [Telegram Group](https://t.me/oneinstack)<br />
 [OneinStack](https://oneinstack.com)<br />
-# oneinstack
