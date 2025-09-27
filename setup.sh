@@ -91,13 +91,19 @@ fi
 # Run installer non-interactively
 echo
 echo "==> Running installer"
-echo -n "    Command: install.sh"; for a in "${args[@]}"; do printf ' %q' "$a"; done; echo
+echo -n "    Command: bash install.sh"; for a in "${args[@]}"; do printf ' %q' "$a"; done; echo
+
+# Guard: ensure install.sh exists
+if [ ! -f ./install.sh ]; then
+  echo "[setup] ERROR: install.sh not found in $ONEINSTACK_DIR" >&2
+  exit 1
+fi
 
 # Force line-buffered stdout/stderr so progress is visible immediately
 if command -v stdbuf >/dev/null 2>&1; then
-  stdbuf -oL -eL ./install.sh "${args[@]}"
+  stdbuf -oL -eL bash ./install.sh "${args[@]}"
 else
-  ./install.sh "${args[@]}"
+  bash ./install.sh "${args[@]}"
 fi
 
 echo
