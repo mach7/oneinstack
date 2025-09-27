@@ -14,9 +14,15 @@ Install_MySQL80() {
   [ $? -ne 0 ] && useradd -M -s /sbin/nologin mysql
 
   [ ! -d "${mysql_install_dir}" ] && mkdir -p ${mysql_install_dir}
-  mkdir -p ${mysql_data_dir};chown mysql.mysql -R ${mysql_data_dir}
+  mkdir -p ${mysql_data_dir};chown mysql:mysql -R ${mysql_data_dir}
 
   if [ "${dbinstallmethod}" == "1" ]; then
+    if [ ! -s "mysql-${mysql84_ver}-${mysql_glibc_suffix}-${SYS_BIT_b}.tar.xz" ]; then
+      echo "${CFAILURE}Missing MySQL tarball: mysql-${mysql84_ver}-${mysql_glibc_suffix}-${SYS_BIT_b}.tar.xz${CEND}"
+      echo "Please download it to ${oneinstack_dir}/src and re-run."
+      echo "URL: https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-${mysql84_ver}-${mysql_glibc_suffix}-${SYS_BIT_b}.tar.xz"
+      exit 1
+    fi
     tar xJf mysql-${mysql84_ver}-${mysql_glibc_suffix}-${SYS_BIT_b}.tar.xz
     mv mysql-${mysql84_ver}-${mysql_glibc_suffix}-${SYS_BIT_b}/* ${mysql_install_dir}
     sed -i "s@/usr/local/mysql@${mysql_install_dir}@g" ${mysql_install_dir}/bin/mysqld_safe
@@ -62,7 +68,7 @@ Install_MySQL80() {
   else
     rm -rf ${mysql_install_dir}
     echo "${CFAILURE}MySQL install failed, Please contact the author! ${CEND}" && lsb_release -a
-    kill -9 $$; exit 1;
+    exit 1
   fi
 
   /bin/cp ${mysql_install_dir}/support-files/mysql.server /etc/init.d/mysqld
