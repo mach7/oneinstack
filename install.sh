@@ -120,7 +120,7 @@ while :; do
       ;;
     --php_option)
       php_option=$2; shift 2
-      [[ ! ${php_option} =~ ^[13-14]$ ]] && { echo "${CWARNING}php_option input error! Please only input number 13~14${CEND}"; exit 1; }
+      [[ ! ${php_option} =~ ^(13|14)$ ]] && { echo "${CWARNING}php_option input error! Please only input number 13~14${CEND}"; exit 1; }
       [ -e "${php_install_dir}/bin/phpize" ] && { echo "${CWARNING}PHP already installed! ${CEND}"; unset php_option; }
       ;;
     --mphp_ver)
