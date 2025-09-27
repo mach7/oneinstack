@@ -158,9 +158,14 @@ checkDownload() {
           echo "Download MySQL 8.4 source package..."
           FILE_NAME=mysql-${mysql84_ver}.tar.gz
         fi
-        # start download
+        # start download with fallbacks
         src_url=${DOWN_ADDR_MYSQL}/${FILE_NAME} && Download_src
+        [ ! -s "${FILE_NAME}" ] && { src_url=${DOWN_ADDR_MYSQL_BK}/${FILE_NAME} && Download_src; }
+        [ ! -s "${FILE_NAME}" ] && [ -n "${DOWN_ADDR_MYSQL_BK2:-}" ] && { src_url=${DOWN_ADDR_MYSQL_BK2}/${FILE_NAME} && Download_src; }
+
         src_url=${DOWN_ADDR_MYSQL}/${FILE_NAME}.md5 && Download_src
+        [ ! -s "${FILE_NAME}.md5" ] && { src_url=${DOWN_ADDR_MYSQL_BK}/${FILE_NAME}.md5 && Download_src; }
+        [ ! -s "${FILE_NAME}.md5" ] && [ -n "${DOWN_ADDR_MYSQL_BK2:-}" ] && { src_url=${DOWN_ADDR_MYSQL_BK2}/${FILE_NAME}.md5 && Download_src; }
         # verifying download
         MYSQL_TAR_MD5=$(awk '{print $1}' ${FILE_NAME}.md5)
         [ -z "${MYSQL_TAR_MD5}" ] && MYSQL_TAR_MD5=$(curl -s ${DOWN_ADDR_MYSQL_BK}/${FILE_NAME}.md5 | grep ${FILE_NAME} | awk '{print $1}')
