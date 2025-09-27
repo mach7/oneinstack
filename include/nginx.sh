@@ -42,6 +42,21 @@ Install_Nginx() {
   sed -i 's@CFLAGS="$CFLAGS -g"@#CFLAGS="$CFLAGS -g"@' auto/cc/gcc
 
   [ ! -d "${nginx_install_dir}" ] && mkdir -p ${nginx_install_dir}
+  # If lua module is requested, ensure LuaJIT 2.x is present
+  if echo "${nginx_modules_options}" | grep -q "lua-nginx-module"; then
+    if [ ! -e "/usr/local/lib/libluajit-5.1.so" ] && [ ! -e "/usr/local/lib/libluajit-5.1.so.2" ]; then
+      echo "LuaJIT not found. Building LuaJIT ${luajit2_ver}..."
+      src_url=https://codeload.github.com/openresty/luajit2/tar.gz/refs/tags/v${luajit2_ver} && Download_src
+      tar xzf luajit2-${luajit2_ver}.tar.gz
+      pushd luajit2-${luajit2_ver} > /dev/null
+      make && make install
+      popd > /dev/null
+      rm -rf luajit2-${luajit2_ver}
+      [ ! -e "/usr/local/lib/libluajit-5.1.so" ] && [ ! -e "/usr/local/lib/libluajit-5.1.so.2" ] && { echo "${CFAILURE}LuaJIT install failed!${CEND}"; exit 1; }
+    fi
+    export LUAJIT_LIB=/usr/local/lib
+    export LUAJIT_INC=/usr/local/include/luajit-2.1
+  fi
   ./configure --prefix=${nginx_install_dir} --user=${run_user} --group=${run_group} --with-http_stub_status_module --with-http_sub_module --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_realip_module --with-http_flv_module --with-http_mp4_module --with-openssl=${OPENSSL_SRC_DIR} --with-pcre=${PCRE_SRC_DIR} --with-pcre-jit --with-ld-opt='-ljemalloc' ${nginx_modules_options}
   make -j ${THREAD} && make install
   if [ -e "${nginx_install_dir}/conf/nginx.conf" ]; then
@@ -61,7 +76,7 @@ Install_Nginx() {
   else
     rm -rf ${nginx_install_dir}
     echo "${CFAILURE}Nginx install failed, Please Contact the author! ${CEND}"
-    kill -9 $$; exit 1;
+    exit 1
   fi
 
   [ -z "`grep ^'export PATH=' /etc/profile`" ] && echo "export PATH=${nginx_install_dir}/sbin:\$PATH" >> /etc/profile
