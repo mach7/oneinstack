@@ -7,7 +7,7 @@ jobs:
   ubuntu-24_04:
     name: Ubuntu 24.04 lint and smoke
     runs-on: ubuntu-latest
-    if: github.actor == 'mach7'
+    if: github.actor == 'mach7' && github.triggering_actor == 'mach7'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,7 +39,7 @@ jobs:
   debian-12:
     name: Debian 12 lint and smoke
     runs-on: ubuntu-latest
-    if: github.actor == 'mach7'
+    if: github.actor == 'mach7' && github.triggering_actor == 'mach7'
     container:
       image: debian:12
     steps:
